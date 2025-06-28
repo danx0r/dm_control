@@ -3,9 +3,12 @@
 
 import numpy as np
 from dm_control import mujoco
+from dm_control.mujoco.wrapper import mjbindings
 from dm_control.mujoco.testing import assets
 from dm_control.utils import inverse_kinematics as ik
 import time
+
+mjlib = mjbindings.mjlib
 
 # Constants
 SITE_NAME = 'gripsite'
