@@ -54,14 +54,21 @@ class IKDemo:
     <texture name='grid' type='2d' builtin='checker' width='512' height='512' rgb1='0.1 0.2 0.3' rgb2='0.2 0.3 0.4'/>'''
             xml_string = xml_string.replace('</asset>', asset_insertion + '\n  </asset>')
         else:
-            # Add entire asset section
+            # Add entire asset section after the compiler section
             asset_section = '''
   <asset>
     <material name='grid' texture='grid' texrepeat='8 8' rgba='0.2 0.3 0.2 0.2'/>
     <texture name='grid' type='2d' builtin='checker' width='512' height='512' rgb1='0.1 0.2 0.3' rgb2='0.2 0.3 0.4'/>
-  </asset>'''
-            # Insert after the opening mujoco tag
-            xml_string = xml_string.replace('<mujoco', asset_section + '\n\n<mujoco', 1)
+  </asset>
+'''
+            # Insert after the compiler section
+            if '<compiler' in xml_string:
+                compiler_end = xml_string.find('/>', xml_string.find('<compiler')) + 2
+                xml_string = xml_string[:compiler_end] + '\n\n' + asset_section + xml_string[compiler_end:]
+            else:
+                # Insert after the opening mujoco tag
+                mujoco_end = xml_string.find('>', xml_string.find('<mujoco')) + 1
+                xml_string = xml_string[:mujoco_end] + '\n' + asset_section + xml_string[mujoco_end:]
         
         # Find the closing worldbody tag and insert before it
         closing_tag = '</worldbody>'
