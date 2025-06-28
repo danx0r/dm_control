@@ -18,6 +18,9 @@ ANIMATION_STEPS = 100
 
 class IKDemo:
     def __init__(self):
+        # Target position (initialize before using in XML modification)
+        self.target_pos = np.array([0.3, 0.2, 0.4])
+        
         # Load the arm model
         arm_xml = assets.get_contents('arm.xml')
         
@@ -27,9 +30,6 @@ class IKDemo:
         
         # Initialize viewer
         self.viewer = mujoco.viewer.launch_passive(self.physics.model.ptr, self.physics.data.ptr)
-        
-        # Target position
-        self.target_pos = np.array([0.3, 0.2, 0.4])
         
     def _add_target_sphere(self, xml_string):
         """Add a target sphere to the XML."""
