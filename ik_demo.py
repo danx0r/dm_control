@@ -22,7 +22,7 @@ class IKDemo:
         self.target_pos = np.array([0.3, 0.2, 0.4])
         
         # Load the arm model
-        arm_xml = assets.get_contents('arm.xml')
+        arm_xml = assets.get_contents('arm.xml').decode('utf-8')
         
         # Add a target sphere to the XML
         modified_xml = self._add_target_sphere(arm_xml)
