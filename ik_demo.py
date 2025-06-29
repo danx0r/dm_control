@@ -19,62 +19,16 @@ ANIMATION_STEPS = 100
 
 class IKDemo:
     def __init__(self):
-        # Target position (initialize before using in XML modification)
+        # Target position
         self.target_pos = np.array([0.3, 0.2, 0.4])
         
-        # Load the arm model
-        arm_xml = assets.get_contents('arm.xml').decode('utf-8')
-        
-        # Add a target sphere to the XML
-        modified_xml = self._add_target_sphere(arm_xml)
-        self.physics = mujoco.Physics.from_xml_string(modified_xml)
+        # Load the model directly from MJCF file
+        arm_xml = assets.get_contents('test.mjcf').decode('utf-8')
+        self.physics = mujoco.Physics.from_xml_string(arm_xml)
         
         # Initialize viewer
         self.viewer = mujoco.viewer.launch_passive(self.physics.model.ptr, self.physics.data.ptr)
         
-    def _add_target_sphere(self, xml_string):
-        """Add a target sphere and checkerboard floor to the XML."""
-        # Insert the target sphere and checkerboard floor before the closing worldbody tag
-        additions = f'''
-    <body name='target' pos='{self.target_pos[0]:.3f} {self.target_pos[1]:.3f} {self.target_pos[2]:.3f}'>
-      <geom name='target_sphere' type='sphere' size='{TARGET_SPHERE_SIZE}' rgba='1 0 0 0.7' contype='0' conaffinity='0'/>
-    </body>
-    <body name='floor' pos='0 0 0'>
-      <geom name='floor' type='plane' size='2 2 0.1' rgba='0.8 0.9 0.8 0.2' material='grid'/>
-    </body>
-    <light name='key_light' pos='1 1 2' dir='-1 -1 -2' diffuse='0.8 0.8 0.8' specular='0.3 0.3 0.3'/>
-    <light name='fill_light' pos='-1 1 1.5' dir='1 -1 -1.5' diffuse='0.4 0.4 0.4' specular='0.1 0.1 0.1'/>
-    <light name='back_light' pos='0 -1.5 1' dir='0 1.5 -1' diffuse='0.3 0.3 0.3' specular='0.1 0.1 0.1'/>'''
-        
-        # Add checkerboard material to assets section if it exists, otherwise add asset section
-        if '<asset>' in xml_string:
-            # Insert material into existing asset section
-            asset_insertion = '''
-    <material name='grid' texture='grid' texrepeat='8 8' rgba='0.2 0.3 0.2 0.2'/>
-    <texture name='grid' type='2d' builtin='checker' width='512' height='512' rgb1='0.1 0.2 0.3' rgb2='0.2 0.3 0.4'/>'''
-            xml_string = xml_string.replace('</asset>', asset_insertion + '\n  </asset>')
-        else:
-            # Add entire asset section after the compiler section
-            asset_section = '''
-  <asset>
-    <material name='grid' texture='grid' texrepeat='8 8' rgba='0.2 0.3 0.2 0.2'/>
-    <texture name='grid' type='2d' builtin='checker' width='512' height='512' rgb1='0.1 0.2 0.3' rgb2='0.2 0.3 0.4'/>
-  </asset>
-'''
-            # Insert after the compiler section
-            if '<compiler' in xml_string:
-                compiler_end = xml_string.find('/>', xml_string.find('<compiler')) + 2
-                xml_string = xml_string[:compiler_end] + '\n\n' + asset_section + xml_string[compiler_end:]
-            else:
-                # Insert after the opening mujoco tag
-                mujoco_end = xml_string.find('>', xml_string.find('<mujoco')) + 1
-                xml_string = xml_string[:mujoco_end] + '\n' + asset_section + xml_string[mujoco_end:]
-        
-        # Find the closing worldbody tag and insert before it
-        closing_tag = '</worldbody>'
-        xml_with_additions = xml_string.replace(closing_tag, additions + '\n  ' + closing_tag)
-        return xml_with_additions
-    
     def set_random_arm_configuration(self):
         """Set the arm to a random configuration."""
         # Get joint limits
@@ -128,7 +82,7 @@ class IKDemo:
                 break
     
     def update_target_position(self, new_pos):
-        """Update the target sphere position."""
+        """Update the target position."""
         self.target_pos = new_pos.copy()
         self.physics.named.model.body_pos['target'] = self.target_pos
         self.physics.forward()
