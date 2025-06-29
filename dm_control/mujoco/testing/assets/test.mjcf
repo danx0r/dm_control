@@ -3,8 +3,8 @@
   <compiler coordinate='local' angle='radian' eulerseq='yxz'/>
 
   <asset>
-    <material name='grid' texture='grid' texrepeat='8 8' rgba='0.2 0.3 0.2 0.2'/>
-    <texture name='grid' type='2d' builtin='checker' width='512' height='512' rgb1='0.1 0.2 0.3' rgb2='0.2 0.3 0.4'/>
+    <texture builtin="checker" height="100" name="texplane1" rgb1="0 0 0" rgb2="0.8 0.8 0.8" type="2d" width="100"/>
+    <material name="MatPlane" reflectance="0" shininess="1" specular="1" texrepeat="60 60" texture="texplane1"/>
   </asset>
 
   <contact>
@@ -32,7 +32,10 @@
   </default>
 
   <worldbody>
-    <geom name='ground' type='plane' pos='0 0 0.06' size='1 1 1' rgba='0.78 0.93 0.92 1.0' margin='0.1' gap='0.1' />
+    <light cutoff="100" ambient=".2 .2 .2" diffuse=".51 .51 .51" specular=".8 .8 .8" directional="false" pos="5 -3 7" castshadow="false"/>
+    <!-- <light cutoff="100" ambient=".2 .2 .2" diffuse=".6 .6 .6" specular=".7 .7 .7" directional="false" pos="-3 -7 4" castshadow="false"/> -->
+    <!-- <geom name='ground' type='plane' pos='0 0 0.06' size='1 1 1' rgba='0.78 0.93 0.92 1.0' margin='0.1' gap='0.1' /> -->
+    <geom conaffinity="1" condim="4" name="floor" rgba="0.42 0.42 0.42 1" size="40 40 40" type="plane" material="MatPlane" friction="1 0.01 0.001"/>
     
     <!-- Target cursor -->
     <body name='target' pos='0.3 0.2 0.4'>
