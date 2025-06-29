@@ -44,9 +44,11 @@ class IKDemo:
             else:
                 qpos[i] = np.random.uniform(0, 2 * np.pi)
         
-        # Set joint positions
+        # Set joint positions and update viewer
         self.physics.named.data.qpos[JOINTS] = qpos
         self.physics.forward()
+        if self.viewer.is_running():
+            self.viewer.sync()
     
     def solve_ik(self, target_pos):
         """Solve inverse kinematics for the given target position."""
@@ -86,6 +88,8 @@ class IKDemo:
         self.target_pos = new_pos.copy()
         self.physics.named.model.body_pos['target'] = self.target_pos
         self.physics.forward()
+        if self.viewer.is_running():
+            self.viewer.sync()
     
     def run_demo(self):
         """Run the interactive demo."""

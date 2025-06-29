@@ -37,9 +37,13 @@
     <!-- <geom name='ground' type='plane' pos='0 0 0.06' size='1 1 1' rgba='0.78 0.93 0.92 1.0' margin='0.1' gap='0.1' /> -->
     <geom conaffinity="1" condim="4" name="floor" rgba="0.42 0.42 0.42 1" size="40 40 40" type="plane" material="MatPlane" friction="1 0.01 0.001"/>
     
-    <!-- Target cursor -->
+    <!-- Target cursor with orientation -->
     <body name='target' pos='0.3 0.2 0.4'>
-      <geom name='target_sphere' type='sphere' size='0.02' rgba='1 0 0 0.8' contype='0' conaffinity='0'/>
+      <geom name='target_sphere' type='sphere' size='0.02' rgba='0.8 0.8 0.8 0.8' contype='0' conaffinity='0'/>
+      <!-- X axis cylinder (red) -->
+      <geom name='target_x_cyl' type='cylinder' size='0.003 0.03' pos='0.03 0 0' quat='0.707 0 0.707 0' rgba='1 0 0 0.9' contype='0' conaffinity='0'/>
+      <!-- Z axis cylinder at tip (blue) -->
+      <geom name='target_z_cyl' type='cylinder' size='0.003 0.015' pos='0.06 0 0.015' quat='1 0 0 0' rgba='0 0 1 0.9' contype='0' conaffinity='0'/>
     </body>
     <body name='b_base' pos='0 0 0.005'>
       <inertial pos='-0.000132925 -0.000516418 0.0820911' quat='0.6951 -0.00714556 0.00738537 0.71884' mass='0.00718278' diaginertia='0.00157301 0.00157269 0.00058831' />
