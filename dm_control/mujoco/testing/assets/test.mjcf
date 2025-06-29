@@ -39,7 +39,7 @@
     
     <!-- Target cursor with orientation -->
     <body name='target' pos='0.3 0.2 0.4'>
-      <geom name='target_sphere' type='sphere' size='0.02' rgba='0.8 0.8 0.8 1.0' contype='0' conaffinity='0'/>
+      <geom name='target_sphere' type='sphere' size='0.02' rgba='0.8 0.8 0.8 0.3' contype='0' conaffinity='0'/>
       <!-- Z axis cylinder (blue) - pointing down toward grippers -->
       <geom name='target_z_cyl' type='cylinder' size='0.003 0.03' pos='0 0 -0.03' quat='1 0 0 0' rgba='0 0 1 1.0' contype='0' conaffinity='0'/>
       <!-- X axis cylinder at tip (red) - perpendicular to Z -->
@@ -69,7 +69,7 @@
                 <joint name='joint_5' axis='0 0 -1' />
                 <geom name='link_5' rgba='0.3010 0.7450 0.9330 1' type='capsule' size="0.0257405 0.0289568" pos="0.0101659 -4.64261e-05 -0.0369867" quat="0.965925 1.43712e-05 -0.258823 3.85082e-06" />
                 <body name='b_hand' pos='0.037 0 -0.06408' quat='0.612372 -0.353553 -0.353553 0.612372'>
-                  <site type='sphere' size='.01' name='gripsite' pos='0 0 -.16' rgba='.7 .7 .7 .9' />
+                  <site type='sphere' size='.01' name='gripsite' pos='0 0 -.16' rgba='0 1 1 1' />
                   <site type='sphere' size='.01' name='pinchsite' pos='0 0.015 -0.195' rgba='.5 .5 .5 0' />
                   <inertial pos='0.00628384 -2.92087e-005 -0.0608681' quat='0.708562 -0.0338601 -0.0358744 0.703923' mass='0.00547172' diaginertia='0.000759818 0.000676099 0.0004995' />
                   <joint name='joint_6' axis='0 0 -1' range='-6.28319 6.28319'  limited='false'/>
@@ -79,22 +79,22 @@
                   <body name='b_finger_1' childclass='finger' pos='-0.029 .003 -0.1145' quat='-0.414818 -0.329751 -0.663854 0.52772'>
                     <inertial pos='0.0485761 -0.000715511 0' quat='0.507589 0.507348 0.492543 0.492294' mass='0.000379077' diaginertia='4.00708e-005 4.00527e-005 2.156e-006' />
                     <joint name='joint_finger_1'/>
-                    <geom name='finger_knuckle_1' rgba='0 0.4470 0.7410 1'/>
-                    <geom class='fingertip' name='finger_tip_1' rgba='0 0.4470 0.7410 1'/>
+                    <geom name='finger_knuckle_1' rgba='0 0.4470 0.7410 0.2'/>
+                    <geom class='fingertip' name='finger_tip_1' rgba='0 0.4470 0.7410 0.2'/>
                     <site class='fingertip' name='fingertip1'/>
                   </body>
                   <body name='b_finger_2' childclass='finger' pos='0.0295 0.0216 -0.115' quat='0.561254 -0.620653 0.321748 0.443014'>
                     <inertial pos='0.0485761 -0.000715511 0' quat='0.507589 0.507348 0.492543 0.492294' mass='0.000379077' diaginertia='4.00708e-005 4.00527e-005 2.156e-006' />
                     <joint name='joint_finger_2'/>
-                    <geom name='finger_knuckle_2' rgba='0.9290 0.6940 0.1250 1'/>
-                    <geom class='fingertip' name='finger_tip_2' rgba='0.9290 0.6940 0.1250 1'/>
+                    <geom name='finger_knuckle_2' rgba='0.9290 0.6940 0.1250 0.2'/>
+                    <geom class='fingertip' name='finger_tip_2' rgba='0.9290 0.6940 0.1250 0.2'/>
                     <site class='fingertip' name='fingertip2'/>
                   </body>
                   <body name='b_finger_3' childclass='finger' pos='0.0295 -0.0216 -0.1145' quat='0.625248 -0.567602 0.434845 0.312735'>
                     <inertial pos='0.0485761 -0.000715511 0' quat='0.507589 0.507348 0.492543 0.492294' mass='0.000379077' diaginertia='4.00708e-005 4.00527e-005 2.156e-006' />
                     <joint name='joint_finger_3'/>
-                    <geom name='finger_knuckle_3' rgba='0.8500 0.3250 0.0980 1'/>
-                    <geom class='fingertip' name='finger_tip_3' rgba='0.8500 0.3250 0.0980 1'/>
+                    <geom name='finger_knuckle_3' rgba='0.8500 0.3250 0.0980 0.2'/>
+                    <geom class='fingertip' name='finger_tip_3' rgba='0.8500 0.3250 0.0980 0.2'/>
                     <site class='fingertip' name='fingertip3'/>
                   </body>
                 </body>
