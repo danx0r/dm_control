@@ -21,11 +21,18 @@ class IKDemo:
     def __init__(self):
         # Target position and orientation
         self.target_pos = np.array([0.3, 0.2, 0.4])
-        self.target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion (w, x, y, z)
+        # Generate random initial orientation
+        self.target_quat = np.random.randn(4)
+        self.target_quat = self.target_quat / np.linalg.norm(self.target_quat)
         
         # Load the model directly from MJCF file
         arm_xml = assets.get_contents('test.mjcf').decode('utf-8')
         self.physics = mujoco.Physics.from_xml_string(arm_xml)
+        
+        # Set initial target pose
+        self.physics.named.model.body_pos['target'] = self.target_pos
+        self.physics.named.model.body_quat['target'] = self.target_quat
+        self.physics.forward()
         
         # Initialize viewer
         self.viewer = mujoco.viewer.launch_passive(self.physics.model.ptr, self.physics.data.ptr)
@@ -143,13 +150,20 @@ class IKDemo:
             elif key == 't':
                 print("Setting new random target...")
                 # Generate random target within reachable workspace
-                new_target = np.array([
+                new_target_pos = np.array([
                     np.random.uniform(-0.6, 0.6),
                     np.random.uniform(-0.6, 0.6),
                     np.random.uniform(0.1, 0.8)
                 ])
-                self.update_target_position(new_target)
-                print(f"New target: [{new_target[0]:.3f}, {new_target[1]:.3f}, {new_target[2]:.3f}]")
+                
+                # Generate random orientation quaternion
+                # Method: generate random unit quaternion by normalizing 4 random Gaussian numbers
+                new_target_quat = np.random.randn(4)
+                new_target_quat = new_target_quat / np.linalg.norm(new_target_quat)
+                
+                self.update_target_pose(new_target_pos, new_target_quat)
+                print(f"New target pos: [{new_target_pos[0]:.3f}, {new_target_pos[1]:.3f}, {new_target_pos[2]:.3f}]")
+                print(f"New target quat: [{new_target_quat[0]:.3f}, {new_target_quat[1]:.3f}, {new_target_quat[2]:.3f}, {new_target_quat[3]:.3f}]")
                 
             elif key == 'q':
                 break
