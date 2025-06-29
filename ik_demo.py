@@ -59,8 +59,8 @@ class IKDemo:
             target_pos=target_pos,
             target_quat=target_quat,
             joint_names=JOINTS,
-            tol=1e-12,
-            max_steps=100,
+            tol=1e-6,
+            max_steps=300,
             inplace=False
         )
         return result
