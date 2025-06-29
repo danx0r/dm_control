@@ -19,8 +19,9 @@ ANIMATION_STEPS = 100
 
 class IKDemo:
     def __init__(self):
-        # Target position
+        # Target position and orientation
         self.target_pos = np.array([0.3, 0.2, 0.4])
+        self.target_quat = np.array([1.0, 0.0, 0.0, 0.0])  # Identity quaternion (w, x, y, z)
         
         # Load the model directly from MJCF file
         arm_xml = assets.get_contents('test.mjcf').decode('utf-8')
@@ -50,12 +51,13 @@ class IKDemo:
         if self.viewer.is_running():
             self.viewer.sync()
     
-    def solve_ik(self, target_pos):
-        """Solve inverse kinematics for the given target position."""
+    def solve_ik(self, target_pos, target_quat=None):
+        """Solve inverse kinematics for the given target position and orientation."""
         result = ik.qpos_from_site_pose(
             physics=self.physics,
             site_name=SITE_NAME,
             target_pos=target_pos,
+            target_quat=target_quat,
             joint_names=JOINTS,
             tol=1e-12,
             max_steps=100,
@@ -83,13 +85,24 @@ class IKDemo:
             else:
                 break
     
-    def update_target_position(self, new_pos):
-        """Update the target position."""
+    def update_target_pose(self, new_pos, new_quat=None):
+        """Update the target position and orientation."""
         self.target_pos = new_pos.copy()
+        if new_quat is not None:
+            self.target_quat = new_quat.copy()
+        
+        # Update the target body in the simulation
         self.physics.named.model.body_pos['target'] = self.target_pos
+        if new_quat is not None:
+            self.physics.named.model.body_quat['target'] = self.target_quat
+        
         self.physics.forward()
         if self.viewer.is_running():
             self.viewer.sync()
+    
+    def update_target_position(self, new_pos):
+        """Update just the target position (for backward compatibility)."""
+        self.update_target_pose(new_pos)
     
     def run_demo(self):
         """Run the interactive demo."""
@@ -119,7 +132,7 @@ class IKDemo:
                 
             elif key == 's':
                 print("Solving IK and animating to target...")
-                result = self.solve_ik(self.target_pos)
+                result = self.solve_ik(self.target_pos, self.target_quat)
                 
                 if result.success:
                     print(f"IK solved in {result.steps} steps with error {result.err_norm:.6f}")
