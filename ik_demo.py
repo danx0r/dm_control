@@ -66,24 +66,184 @@ class IKDemo:
             self.viewer.sync()
     
     def _calculate_workspace_bounds(self):
-        """Calculate approximate workspace bounds for the arm."""
-        # Estimate max reach by summing link lengths
-        # This is a conservative estimate for the Jaco arm
-        max_reach = 0.85  # Conservative estimate based on Jaco dimensions
-        min_reach = 0.15  # Minimum reachable distance from base
+        """Calculate workspace bounds by analyzing the model's kinematic chain."""
+        # Get the kinematic chain from base to end-effector site
+        site_id = self.physics.model.name2id(SITE_NAME, 'site')
+        site_body_id = self.physics.model.site_bodyid[site_id]
+        
+        # Calculate maximum reach by analyzing joint limits and link lengths
+        max_reach = self._calculate_max_reach()
+        min_reach = self._calculate_min_reach()
+        
+        # Get base position (assuming arm is attached to world or first body)
+        base_pos = self._get_base_position()
+        
+        # Calculate conservative workspace bounds
+        safety_margin = 0.05  # 5cm safety margin
         
         self.workspace_bounds = {
-            'x_range': (-max_reach + 0.1, max_reach - 0.1),
-            'y_range': (-max_reach + 0.1, max_reach - 0.1), 
-            'z_range': (0.15, max_reach - 0.1),
-            'max_reach': max_reach - 0.1,
-            'min_reach': min_reach
+            'x_range': (base_pos[0] - max_reach + safety_margin, 
+                       base_pos[0] + max_reach - safety_margin),
+            'y_range': (base_pos[1] - max_reach + safety_margin, 
+                       base_pos[1] + max_reach - safety_margin),
+            'z_range': (max(0.1, base_pos[2] + min_reach), 
+                       base_pos[2] + max_reach - safety_margin),
+            'max_reach': max_reach - safety_margin,
+            'min_reach': min_reach,
+            'base_pos': base_pos
         }
+        
+        print(f"Calculated workspace bounds:")
+        print(f"  Max reach: {max_reach:.3f}m")
+        print(f"  Min reach: {min_reach:.3f}m") 
+        print(f"  Base position: [{base_pos[0]:.3f}, {base_pos[1]:.3f}, {base_pos[2]:.3f}]")
+    
+    def _get_base_position(self):
+        """Get the base position of the arm."""
+        # Find the root body of the kinematic chain
+        # Typically this is the first joint's parent body
+        if len(JOINTS) > 0:
+            joint_id = self.physics.model.name2id(JOINTS[0], 'joint')
+            body_id = self.physics.model.jnt_bodyid[joint_id]
+            body_name = self.physics.model.id2name(body_id, 'body')
+            return self.physics.named.model.body_pos[body_name].copy()
+        return np.zeros(3)
+    
+    def _calculate_max_reach(self):
+        """Calculate maximum reach by analyzing the kinematic chain."""
+        # Method 1: Sum of link lengths (conservative upper bound)
+        total_link_length = 0.0
+        
+        # Get all bodies in the kinematic chain
+        site_id = self.physics.model.name2id(SITE_NAME, 'site')
+        site_body_id = self.physics.model.site_bodyid[site_id]
+        
+        # Traverse the kinematic chain and sum distances between joints
+        for i, joint_name in enumerate(JOINTS):
+            joint_id = self.physics.model.name2id(joint_name, 'joint')
+            body_id = self.physics.model.jnt_bodyid[joint_id]
+            
+            if i < len(JOINTS) - 1:
+                # Distance to next joint
+                next_joint_id = self.physics.model.name2id(JOINTS[i + 1], 'joint')
+                next_body_id = self.physics.model.jnt_bodyid[next_joint_id]
+                
+                # Get relative positions
+                body_name = self.physics.model.id2name(body_id, 'body')
+                next_body_name = self.physics.model.id2name(next_body_id, 'body')
+                body_pos = self.physics.named.model.body_pos[body_name]
+                next_body_pos = self.physics.named.model.body_pos[next_body_name]
+                
+                link_length = np.linalg.norm(next_body_pos - body_pos)
+                total_link_length += link_length
+            else:
+                # Distance from last joint to end-effector site
+                body_name = self.physics.model.id2name(body_id, 'body')
+                body_pos = self.physics.named.model.body_pos[body_name]
+                site_pos = self.physics.named.model.site_pos[SITE_NAME]
+                
+                # Site position is relative to its body, so add the offset
+                final_link_length = np.linalg.norm(site_pos)
+                total_link_length += final_link_length
+        
+        # Method 2: Empirical measurement by setting extreme joint positions
+        empirical_max = self._measure_empirical_reach()
+        
+        # Use the more conservative (smaller) of the two estimates
+        calculated_max = min(total_link_length, empirical_max)
+        
+        print(f"Link length sum: {total_link_length:.3f}m")
+        print(f"Empirical max reach: {empirical_max:.3f}m")
+        
+        return calculated_max
+    
+    def _measure_empirical_reach(self):
+        """Measure maximum reach empirically by testing joint configurations."""
+        # Store current joint positions
+        original_qpos = self.physics.named.data.qpos[JOINTS].copy()
+        
+        max_distance = 0.0
+        base_pos = self._get_base_position()
+        
+        # Sample various joint configurations to find maximum reach
+        n_samples = 100
+        
+        for _ in range(n_samples):
+            # Generate random joint configuration within limits
+            joint_ranges = self.physics.named.model.jnt_range[JOINTS]
+            limited = self.physics.named.model.jnt_limited[JOINTS].astype(bool)
+            
+            qpos = np.zeros(len(JOINTS))
+            for i, joint in enumerate(JOINTS):
+                if limited[i]:
+                    low, high = joint_ranges[i]
+                    qpos[i] = np.random.uniform(low, high)
+                else:
+                    qpos[i] = np.random.uniform(-np.pi, np.pi)
+            
+            # Set configuration and measure end-effector position
+            self.physics.named.data.qpos[JOINTS] = qpos
+            self.physics.forward()
+            
+            ee_pos = self.physics.named.data.site_xpos[SITE_NAME]
+            distance = np.linalg.norm(ee_pos - base_pos)
+            max_distance = max(max_distance, distance)
+        
+        # Restore original joint positions
+        self.physics.named.data.qpos[JOINTS] = original_qpos
+        self.physics.forward()
+        
+        return max_distance
+    
+    def _calculate_min_reach(self):
+        """Calculate minimum reach (when arm is maximally contracted)."""
+        # Store current joint positions
+        original_qpos = self.physics.named.data.qpos[JOINTS].copy()
+        
+        min_distance = float('inf')
+        base_pos = self._get_base_position()
+        
+        # Try to find configuration that minimizes reach
+        # This is often when joints are at extreme positions that fold the arm
+        n_samples = 50
+        
+        for _ in range(n_samples):
+            # Generate joint configuration biased toward folding the arm
+            joint_ranges = self.physics.named.model.jnt_range[JOINTS]
+            limited = self.physics.named.model.jnt_limited[JOINTS].astype(bool)
+            
+            qpos = np.zeros(len(JOINTS))
+            for i, joint in enumerate(JOINTS):
+                if limited[i]:
+                    low, high = joint_ranges[i]
+                    # Bias toward extreme values that might fold the arm
+                    if np.random.random() < 0.5:
+                        qpos[i] = low + 0.1 * (high - low)  # Near lower limit
+                    else:
+                        qpos[i] = high - 0.1 * (high - low)  # Near upper limit
+                else:
+                    qpos[i] = np.random.choice([-np.pi + 0.1, np.pi - 0.1])
+            
+            # Set configuration and measure end-effector position
+            self.physics.named.data.qpos[JOINTS] = qpos
+            self.physics.forward()
+            
+            ee_pos = self.physics.named.data.site_xpos[SITE_NAME]
+            distance = np.linalg.norm(ee_pos - base_pos)
+            min_distance = min(min_distance, distance)
+        
+        # Restore original joint positions
+        self.physics.named.data.qpos[JOINTS] = original_qpos
+        self.physics.forward()
+        
+        # Add small safety margin to minimum reach
+        return max(0.05, min_distance * 0.9)
     
     def _generate_safe_target_position(self):
         """Generate a target position within the safe workspace."""
         attempts = 0
         max_attempts = 100
+        base_pos = self.workspace_bounds['base_pos']
         
         while attempts < max_attempts:
             # Generate candidate position
@@ -94,15 +254,24 @@ class IKDemo:
             ])
             
             # Check if position is within reach constraints
-            distance_from_base = np.linalg.norm(pos)
+            distance_from_base = np.linalg.norm(pos - base_pos)
             if (self.workspace_bounds['min_reach'] <= distance_from_base <= 
                 self.workspace_bounds['max_reach']):
                 return pos
             
             attempts += 1
         
-        # Fallback to a known safe position
-        return np.array([0.3, 0.2, 0.4])
+        # Fallback to a known safe position relative to base
+        fallback_pos = base_pos + np.array([0.3, 0.2, 0.4])
+        
+        # Ensure fallback is within bounds
+        distance = np.linalg.norm(fallback_pos - base_pos)
+        if distance > self.workspace_bounds['max_reach']:
+            # Scale down to fit within max reach
+            direction = (fallback_pos - base_pos) / distance
+            fallback_pos = base_pos + direction * (self.workspace_bounds['max_reach'] * 0.8)
+        
+        return fallback_pos
     
     def solve_ik(self, target_pos, target_quat=None, max_attempts=5):
         """Solve inverse kinematics with multiple attempts from different initial configurations."""
