@@ -12,7 +12,7 @@
         <light cutoff="100" ambient=".3 .3 .3" diffuse="1 1 1" specular=".8 .8 .8" directional="false" pos="5 -3 7" castshadow="false"/>
         <light cutoff="100" ambient=".2 .2 .2" diffuse=".6 .6 .6" specular=".7 .7 .7" directional="false" pos="-3 -7 4" castshadow="false"/>
 
-        <body name="cursor" mocap="true" pos=".2 0 .15" xyaxes="0 0 1 0 -1 0">
+        <body name="target" pos=".2 0 .15" xyaxes="0 0 1 0 -1 0">
             <geom type="sphere"  size="0.009" contype="0" conaffinity="0" rgba="1 1 0 1"/>
             <geom type="capsule" size="0.0035" fromto="0 0 0  .05 0 0" contype="0" conaffinity="0" mass=".001" rgba="1 0 0 1"/>
             <geom type="capsule" size="0.0035" fromto="0 0 0  0 .05 0" contype="0" conaffinity="0" mass=".001" rgba="0 1 0 1"/>
@@ -22,32 +22,32 @@
         <body name = "A" pos="0 0 -.15">
             <geom type="capsule" size="0.052" fromto="0 0 0.04 0 0 0.126" rgba="0.47 0.47 0.47 1"/>
             <geom type="capsule" size="0.022" fromto="0 0 0.1 0 0 0.26" contype="0" conaffinity="0" rgba="0.8 .8 .8 1"/>
-            <joint name="j1" type="hinge" range="-165 165" axis="0 0 1"/>
+            <joint name="joint_1" type="hinge" range="-165 165" axis="0 0 1"/>
             <geom type="cylinder" size=".0007" fromto="0 0 -.1 0 0 .1" contype="0" conaffinity="0"  rgba=".5 .6 .8 .5"/>
             <body name="B" pos="0 -.05 .26">
                 <geom type="capsule" size="0.022" fromto="0 0 0 0 0 0.11" rgba="0.7 0.7 0.7 .5"/>
                 <geom type="cylinder" size="0.0221" fromto="0 0 0 0 0.04 0" rgba="0.7 0.7 0.7 .5"/>
-                <joint name="j2" type="hinge" range="10 165" axis="0 1 0"/>
+                <joint name="joint_2" type="hinge" range="10 165" axis="0 1 0"/>
                 <geom type="cylinder" size=".0007" fromto="0 -.1 0 0 .1 0" contype="0" conaffinity="0"  rgba=".5 .6 .8 .5"/>
                 <body name="C" pos="0 0.04 0.11">
                     <geom type="capsule" size="0.022" fromto="0 0 0 0 0 0.1" rgba="0.7 0.7 0.7 .5"/>
                     <geom type="cylinder" size="0.0221" fromto="0 0 0 0 -.04 0" rgba="0.7 0.7 0.7 .5"/>
-                    <joint name="j3" type="hinge" range="10 165" axis="0 1 0"/>
+                    <joint name="joint_3" type="hinge" range="10 165" axis="0 1 0"/>
                     <geom type="cylinder" size=".0007" fromto="0 -.1 0 0 .1 0" contype="0" conaffinity="0"  rgba=".5 .6 .8 .5"/>
                     <body name="D" pos="0 -.04 0.1">
-                        <joint name="j4" type="hinge" range="-165 165" axis="0 1 0"/>
+                        <joint name="joint_4" type="hinge" range="-165 165" axis="0 1 0"/>
                         <geom type="cylinder" size=".0007" fromto="0 -.1 0 0 .1 0" contype="0" conaffinity="0"  rgba=".5 .6 .8 .5"/>
                         <geom type="capsule" size="0.022" fromto="0 0 0 0 0 0.07" rgba="0.7 0.7 0.7 .51"/>
                         <geom type="cylinder" size="0.0221" fromto="0 0 0 0 0.04 0" rgba="0.7 0.7 0.7 .51"/>
                         <body name="E" pos="0 0 0.07" xyaxes="-1 0 0 0 -1 0">
-                            <joint name="j5" type="hinge" range="-165 165" axis="0 0 1"/>
+                            <joint name="joint_5" type="hinge" range="-165 165" axis="0 0 1"/>
                             <geom type="cylinder" size=".0007" fromto="0 0 -.06 0 0 .06" rgba=".5 .6 .8 .5"/>
                             <geom type="capsule" size="0.012" fromto="0 0 0 -.02 0 0" contype="0" conaffinity="0" rgba="0.17 0.7 0.7 .51"/>
                             <body name="F" pos="0 0 0">
-                                <joint name="j6" type="hinge" range="-180 180" axis="1 0 0"/>
+                                <joint name="joint_6" type="hinge" range="-180 180" axis="1 0 0"/>
                                 <geom type="cylinder" size=".0007" fromto="-.05 0 0 .05 0 0" rgba=".5 .6 .8 .5"/>
-                                <body name="endpt" pos="-.05 0 0">
-                                    <geom type="sphere" size="0.01" contype="0" conaffinity="0" rgba="0.4 .4 .4 .7"/>
+                                <body name="gripsite" pos="-.05 0 0">
+                                    <site type="sphere" name="gripsite" size="0.01" rgba="0.4 .4 .4 .7"/>
                                     <geom type="capsule" size="0.0035" fromto="0 0 0  .05 0 0" contype="0" conaffinity="0" mass="1" rgba="1 0 0 1"/>
                                     <geom type="capsule" size="0.0035" fromto="0 0 0  0 .05 0" contype="0" conaffinity="0" mass="1" rgba="0 1 0 1"/>
                                     <geom type="capsule" size="0.0035" fromto="0 0 0  0 0 0.05" contype="0" conaffinity="0" rgba=".3 .3 1 1"/>
@@ -63,11 +63,11 @@
     </worldbody>
 
     <actuator>
-        <position name="j1" inheritrange="1" kp="60" kv="12" joint="j1"/>
-        <position name="j2" inheritrange="1" kp="120" kv="24" joint="j2"/>
-        <position name="j3" inheritrange="1" kp="60" kv="12" joint="j3"/>
-        <position name="j4" inheritrange="1" kp="60" kv="12" joint="j4"/>
-        <position name="j5" inheritrange="1" kp="20" kv="4" joint="j5"/>
-        <position name="j6" inheritrange="1" kp="6" kv="1" joint="j6"/>
+        <position name="joint_1" inheritrange="1" kp="60" kv="12" joint="joint_1"/>
+        <position name="joint_2" inheritrange="1" kp="120" kv="24" joint="joint_2"/>
+        <position name="joint_3" inheritrange="1" kp="60" kv="12" joint="joint_3"/>
+        <position name="joint_4" inheritrange="1" kp="60" kv="12" joint="joint_4"/>
+        <position name="joint_5" inheritrange="1" kp="20" kv="4" joint="joint_5"/>
+        <position name="joint_6" inheritrange="1" kp="6" kv="1" joint="joint_6"/>
     </actuator>
 </mujoco>
