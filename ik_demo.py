@@ -277,6 +277,12 @@ class IKDemo:
         """Solve inverse kinematics with multiple attempts from different initial configurations."""
         best_result = None
         best_error = float('inf')
+        best_qpos = None
+        
+        # Separate tracking for actual geometric distance (for non-convergence cases)
+        best_distance = float('inf')
+        best_distance_qpos = None
+        best_distance_result = None
         
         # Store current joint positions
         original_qpos = self.physics.named.data.qpos[JOINTS].copy()
@@ -298,22 +304,62 @@ class IKDemo:
                 inplace=self.inplace
             )
             
+            # Calculate actual end-effector distance for this attempt
+            actual_ee_pos = self.physics.named.data.site_xpos[SITE_NAME]
+            actual_distance = np.linalg.norm(actual_ee_pos - target_pos)
+            
             if result.success:
                 # Restore original position and return successful result
                 self.physics.named.data.qpos[JOINTS] = original_qpos
                 self.physics.forward()
                 return result
-            elif result.err_norm < best_error:
-                # Track best attempt even if not successful
-                best_result = result
-                best_error = result.err_norm
+            else:
+                # Track best IK error (for potential convergence in future attempts)
+                if result.err_norm < best_error:
+                    best_result = result
+                    best_error = result.err_norm
+                    best_qpos = self.physics.named.data.qpos[JOINTS].copy()
+                
+                # Always track best actual distance (for non-convergence cases)
+                if actual_distance < best_distance:
+                    best_distance = actual_distance
+                    best_distance_qpos = self.physics.named.data.qpos[JOINTS].copy()
+                    best_distance_result = result
+                    print(f"  Attempt {attempt + 1}: IK error {result.err_norm:.6f}, actual distance {actual_distance:.6f}m (best distance so far)")
+                else:
+                    print(f"  Attempt {attempt + 1}: IK error {result.err_norm:.6f}, actual distance {actual_distance:.6f}m")
         
+        # For non-convergence, prioritize best actual distance over best IK error
+        if best_distance_result is not None and best_distance_qpos is not None:
+            # Use the configuration with the best actual distance
+            final_result = best_distance_result
+            final_qpos = best_distance_qpos
+            
+            # Update result with the best distance joint configuration
+            final_result.qpos[self.physics.named.model.jnt_qposadr[JOINTS]] = final_qpos
+            
+            # Verify the distance
+            self.physics.named.data.qpos[JOINTS] = final_qpos
+            self.physics.forward()
+            actual_ee_pos = self.physics.named.data.site_xpos[SITE_NAME]
+            verified_distance = np.linalg.norm(actual_ee_pos - target_pos)
+            
+            print(f"IK failed to converge. Returning configuration with best actual distance:")
+            print(f"  Best IK error found: {best_error:.6f}")
+            print(f"  Chosen actual distance: {verified_distance:.6f}m")
+            print(f"  Chosen IK error: {final_result.err_norm:.6f}")
+            
         # Restore original joint positions
         self.physics.named.data.qpos[JOINTS] = original_qpos
         self.physics.forward()
         
-        # Return best attempt
-        return best_result if best_result else result
+        # Return best distance attempt, fallback to best error, then last result
+        if best_distance_result is not None:
+            return best_distance_result
+        elif best_result is not None:
+            return best_result
+        else:
+            return result
     
     def animate_to_target(self, target_qpos):
         """Animate the arm from current position to target position."""
@@ -386,9 +432,11 @@ class IKDemo:
                 
                 if result.success:
                     print(f"IK solved in {result.steps} steps with error {result.err_norm:.6f}")
-                    self.animate_to_target(result.qpos[self.physics.named.model.jnt_qposadr[JOINTS]])
                 else:
-                    print(f"IK failed to converge! Best error: {result.err_norm:.6f}")
+                    print(f"IK failed to converge! Animating to best solution with error: {result.err_norm:.6f}")
+                
+                # Always animate to the result (either converged solution or best attempt)
+                self.animate_to_target(result.qpos[self.physics.named.model.jnt_qposadr[JOINTS]])
                     
             elif key == 't':
                 print("Setting new random target...")
