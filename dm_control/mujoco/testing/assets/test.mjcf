@@ -9,26 +9,12 @@
 
   <contact>
     <exclude body1='b_base' body2='b_1'/>
-    <exclude body1='b_finger_1' body2='b_finger_2'/>
-    <exclude body1='b_finger_1' body2='b_finger_3'/>
-    <exclude body1='b_finger_2' body2='b_finger_3'/>
   </contact>
 
   <default>
     <geom contype='1' conaffinity='1' condim='3' friction='.1 .1' solimp='.95 .98 .0005' solref='0.02 1.1' density='1'/>
     <joint type='hinge' armature='0' damping='0'
       solimpfriction='.95 .95 0' solreffriction='.02 1' solimplimit='0 .99 .01' solreflimit='.02 1'/>
-    <default class='finger'>
-      <joint frictionloss='0.1' armature='.1' axis='0 0 1' limited='true' range='-0.15 1.2' damping='.1'/>
-      <velocity kv='0.5' ctrlrange='-1 1' gear='1' forcerange='-1.5 1.5'/>
-      <geom type='capsule' size="0.0108231 0.0145116" pos="0.0190913 -0.0112192 1.10387e-06" quat="0.475811 -0.475815 0.523071 -0.523068"/>
-    </default>
-    <default class='fingertip'>
-      <geom type='box' pos='0.065 -0.022 0' size='0.02 .005 .011' rgba='1 0 0 1'
-            quat='1 0 0 -0.235' condim='4' />
-      <site type='ellipsoid' pos='0.065 -0.022 0' size='0.02 .005 .011'
-            quat='1 0 0 -0.235'/>
-    </default>
   </default>
 
   <worldbody>
@@ -76,27 +62,6 @@
                   <geom name='link_6' rgba='0.6350 0.0780 0.1840 1' type='capsule' size="0.0368731 0.0322296" pos="0.00628384 -2.92087e-05 -0.0608681" quat="0.708562 -0.0338601 -0.0358744 0.703923"/>
                   <!-- optional collision geom to be used if issues arise with the mesh
                     <geom type='ellipsoid' rgba='0.6350 0.0780 0.1840 1' size='.035 .025 .01' pos='.005 0 -.117' group='1'/> -->
-                  <body name='b_finger_1' childclass='finger' pos='-0.029 .003 -0.1145' quat='-0.414818 -0.329751 -0.663854 0.52772'>
-                    <inertial pos='0.0485761 -0.000715511 0' quat='0.507589 0.507348 0.492543 0.492294' mass='0.000379077' diaginertia='4.00708e-005 4.00527e-005 2.156e-006' />
-                    <joint name='joint_finger_1'/>
-                    <geom name='finger_knuckle_1' rgba='0 0.4470 0.7410 0.2'/>
-                    <geom class='fingertip' name='finger_tip_1' rgba='0 0.4470 0.7410 0.2'/>
-                    <site class='fingertip' name='fingertip1'/>
-                  </body>
-                  <body name='b_finger_2' childclass='finger' pos='0.0295 0.0216 -0.115' quat='0.561254 -0.620653 0.321748 0.443014'>
-                    <inertial pos='0.0485761 -0.000715511 0' quat='0.507589 0.507348 0.492543 0.492294' mass='0.000379077' diaginertia='4.00708e-005 4.00527e-005 2.156e-006' />
-                    <joint name='joint_finger_2'/>
-                    <geom name='finger_knuckle_2' rgba='0.9290 0.6940 0.1250 0.2'/>
-                    <geom class='fingertip' name='finger_tip_2' rgba='0.9290 0.6940 0.1250 0.2'/>
-                    <site class='fingertip' name='fingertip2'/>
-                  </body>
-                  <body name='b_finger_3' childclass='finger' pos='0.0295 -0.0216 -0.1145' quat='0.625248 -0.567602 0.434845 0.312735'>
-                    <inertial pos='0.0485761 -0.000715511 0' quat='0.507589 0.507348 0.492543 0.492294' mass='0.000379077' diaginertia='4.00708e-005 4.00527e-005 2.156e-006' />
-                    <joint name='joint_finger_3'/>
-                    <geom name='finger_knuckle_3' rgba='0.8500 0.3250 0.0980 0.2'/>
-                    <geom class='fingertip' name='finger_tip_3' rgba='0.8500 0.3250 0.0980 0.2'/>
-                    <site class='fingertip' name='fingertip3'/>
-                  </body>
                 </body>
               </body>
             </body>
