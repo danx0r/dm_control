@@ -63,7 +63,7 @@
                   <geom name='ee_z_axis' type='capsule' size='0.002 0.04' pos='0 0 -0.12' quat='1 0 0 0' rgba='0 0 1 1' contype='0' conaffinity='0'/>
                   <inertial pos='0.00628384 -2.92087e-005 -0.0608681' quat='0.708562 -0.0338601 -0.0358744 0.703923' mass='0.00547172' diaginertia='0.000759818 0.000676099 0.0004995' />
                   <joint name='joint_6' axis='0 0 -1' range='-6.28319 6.28319'  limited='false'/>
-                  <geom name='link_6' rgba='0.6350 0.0780 0.1840 1' type='capsule' size="0.0368731 0.0322296" pos="0.00628384 -2.92087e-05 -0.0608681" quat="0.708562 -0.0338601 -0.0358744 0.703923"/>
+                  <geom name='link_6' rgba='0.5 0.5 0.5 0.3' type='capsule' size="0.0368731 0.0322296" pos="0.00628384 -2.92087e-05 -0.0608681" quat="0.708562 -0.0338601 -0.0358744 0.703923"/>
                   <!-- optional collision geom to be used if issues arise with the mesh
                     <geom type='ellipsoid' rgba='0.6350 0.0780 0.1840 1' size='.035 .025 .01' pos='.005 0 -.117' group='1'/> -->
                 </body>
