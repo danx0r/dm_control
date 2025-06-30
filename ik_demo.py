@@ -26,7 +26,7 @@ class IKDemo:
         self.target_quat = self.target_quat / np.linalg.norm(self.target_quat)
         
         # Load the model directly from MJCF file
-        arm_xml = assets.get_contents('test.mjcf').decode('utf-8')
+        arm_xml = assets.get_contents('tycho_arm.mjcf').decode('utf-8')
         self.physics = mujoco.Physics.from_xml_string(arm_xml)
         
         # Calculate workspace bounds based on arm geometry
