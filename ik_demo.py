@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Demo script showing inverse kinematics with robotic arm visualization."""
 
+import argparse
 import numpy as np
 import mujoco.viewer
 from dm_control import mujoco
@@ -18,15 +19,18 @@ TARGET_SPHERE_SIZE = 0.03
 ANIMATION_STEPS = 100
 
 class IKDemo:
-    def __init__(self):
+    def __init__(self, model_name, inplace=False):
         # Target position and orientation
         self.target_pos = np.array([0.3, 0.2, 0.4])
         # Generate random initial orientation
         self.target_quat = np.random.randn(4)
         self.target_quat = self.target_quat / np.linalg.norm(self.target_quat)
         
+        # Store inplace parameter for IK solver
+        self.inplace = inplace
+        
         # Load the model directly from MJCF file
-        arm_xml = assets.get_contents('tycho_arm.mjcf').decode('utf-8')
+        arm_xml = assets.get_contents(model_name).decode('utf-8')
         self.physics = mujoco.Physics.from_xml_string(arm_xml)
         
         # Calculate workspace bounds based on arm geometry
@@ -122,7 +126,7 @@ class IKDemo:
                 joint_names=JOINTS,
                 tol=1e-6,
                 max_steps=500,  # Increased from 300
-                inplace=False
+                inplace=self.inplace
             )
             
             if result.success:
@@ -239,8 +243,17 @@ class IKDemo:
 
 def main():
     """Main function to run the demo."""
-    print("Starting IK Demo...")
-    demo = IKDemo()
+    parser = argparse.ArgumentParser(description='IK Demo with robotic arm visualization')
+    parser.add_argument('model', help='MJCF model name (e.g., tycho_arm.mjcf)')
+    parser.add_argument('--inplace', action='store_true', 
+                       help='Use in-place IK solver (modifies physics state)')
+    
+    args = parser.parse_args()
+    
+    print(f"Starting IK Demo with model: {args.model}")
+    print(f"In-place IK: {args.inplace}")
+    
+    demo = IKDemo(args.model, args.inplace)
     demo.run_demo()
     print("Demo completed.")
 
