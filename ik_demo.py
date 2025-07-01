@@ -21,10 +21,10 @@ ANIMATION_STEPS = 100
 class IKDemo:
     def __init__(self, model_name, inplace=False):
         # Target position and orientation
-        self.target_pos = np.array([0.3, 0.2, 0.4])
+        self.target_pos = np.array([.15, -.1, .1])
         # Generate random initial orientation
-        self.target_quat = np.random.randn(4)
-        self.target_quat = self.target_quat / np.linalg.norm(self.target_quat)
+        # self.target_quat = np.random.randn(4)
+        self.target_quat = [0, 0, 1, 0]
         
         # Store inplace parameter for IK solver
         self.inplace = inplace

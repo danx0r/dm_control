@@ -7,8 +7,8 @@
     </visual>
 
     <worldbody>
-        <!-- <geom type="capsule" size="0.0015" fromto="0 0 0  .5 0 0" contype="0" conaffinity="0" mass=".001" rgba="1 0 0 1"/>
-        <geom type="capsule" size="0.0015" fromto="0 0 0  0 .5 0" contype="0" conaffinity="0" mass=".001" rgba="0 1 0 1"/> -->
+        <geom type="capsule" size="0.0015" fromto="-1 0 0  1 0 0" contype="0" conaffinity="0" mass=".001" rgba="1 0 0 0.3"/>
+        <geom type="capsule" size="0.0015" fromto="0 -1 0  0 1 0" contype="0" conaffinity="0" mass=".001" rgba="0 1 0 0.3"/>
         <light cutoff="100" ambient=".3 .3 .3" diffuse="1 1 1" specular=".8 .8 .8" directional="false" pos="5 -3 7" castshadow="false"/>
         <light cutoff="100" ambient=".2 .2 .2" diffuse=".6 .6 .6" specular=".7 .7 .7" directional="false" pos="-3 -7 4" castshadow="false"/>
 
@@ -16,7 +16,7 @@
             <geom type="sphere"  size="0.009" contype="0" conaffinity="0" rgba="0 .8 .8 1"/>
             <geom type="capsule" size="0.0035" fromto="0 0 0  .05 0 0" contype="0" conaffinity="0" mass=".001" rgba="1 0 0 1"/>
             <geom type="capsule" size="0.0035" fromto="0 0 0  0 .05 0" contype="0" conaffinity="0" mass=".001" rgba="0 1 0 1"/>
-            <geom type="capsule" size="0.0035" fromto="0 0 0 0 0 0.05" contype="0" conaffinity="0" rgba=".3 .3 1 1"/>
+            <geom type="capsule" size="0.0035" fromto="0 0 0 0 0 0.05" contype="0" conaffinity="0" rgba=".2 .3 1 1"/>
         </body>
 
         <body name = "A" pos="0 0 -.15">
@@ -50,7 +50,7 @@
                                     <site type="sphere" name="gripsite" size="0.015" rgba="0.4 .4 .4 .6"/>
                                     <geom type="capsule" size="0.0020" fromto="0 0 0  .08 0 0" contype="0" conaffinity="0" mass="1" rgba="1 0 0 1"/>
                                     <geom type="capsule" size="0.0020" fromto="0 0 0  0 .08 0" contype="0" conaffinity="0" mass="1" rgba="0 1 0 1"/>
-                                    <geom type="capsule" size="0.0020" fromto="0 0 0  0 0 0.08" contype="0" conaffinity="0" rgba=".3 .3 1 1"/>
+                                    <geom type="capsule" size="0.0020" fromto="0 0 0  0 0 0.08" contype="0" conaffinity="0" rgba=".2 .3 1 1"/>
                                     <!-- <geom type="capsule" fromto="0 0 0  .05 0 0" size="0.0035" contype="0" conaffinity="0" mass="1" rgba="1 0 0 .41"/>
                                     <geom type="capsule" fromto="0 0 0  0 .03 0" size="0.0035" contype="0" conaffinity="0" mass="1" rgba="0 1 0 .41"/> -->
                                 </body>
