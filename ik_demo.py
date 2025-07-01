@@ -44,6 +44,30 @@ class IKDemo:
         # Initialize viewer
         self.viewer = mujoco.viewer.launch_passive(self.physics.model.ptr, self.physics.data.ptr)
         
+        # Position camera closer to the arm
+        self._setup_camera()
+    
+    def _setup_camera(self):
+        """Position the camera for a better view of the arm."""
+        if self.viewer.is_running():
+            # Get arm base position for reference
+            base_pos = self._get_base_position()
+            
+            # Set camera position closer to the arm
+            # Camera distance (closer to arm)
+            self.viewer.cam.distance = 0.75  # Closer than default
+            
+            # Camera elevation angle (looking down slightly)
+            self.viewer.cam.elevation = -10  # degrees
+            
+            # Camera azimuth (side angle)
+            self.viewer.cam.azimuth = 45  # degrees
+            
+            # Camera target point (center on arm base)
+            self.viewer.cam.lookat[0] = base_pos[0]
+            self.viewer.cam.lookat[1] = base_pos[1] 
+            self.viewer.cam.lookat[2] = base_pos[2] + 0.3  # Slightly above base
+        
     def set_random_arm_configuration(self):
         """Set the arm to a random configuration."""
         # Get joint limits
