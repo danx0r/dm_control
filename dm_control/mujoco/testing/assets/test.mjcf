@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<mujoco model='jaco'>
+<mujoco>
   <compiler coordinate='local' angle='radian' eulerseq='yxz'/>
 
   <asset>

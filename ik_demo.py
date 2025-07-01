@@ -432,11 +432,11 @@ class IKDemo:
                 
                 if result.success:
                     print(f"IK solved in {result.steps} steps with error {result.err_norm:.6f}")
+                    # Only animate for successful convergence
+                    self.animate_to_target(result.qpos[self.physics.named.model.jnt_qposadr[JOINTS]])
                 else:
-                    print(f"IK failed to converge! Animating to best solution with error: {result.err_norm:.6f}")
-                
-                # Always animate to the result (either converged solution or best attempt)
-                self.animate_to_target(result.qpos[self.physics.named.model.jnt_qposadr[JOINTS]])
+                    print(f"IK failed to converge! Best solution error: {result.err_norm:.6f}")
+                    print("(No animation - try 'r' to randomize arm position and try again)")
                     
             elif key == 't':
                 print("Setting new random target...")
