@@ -9,6 +9,8 @@ from dm_control.mujoco.wrapper import mjbindings
 from dm_control.mujoco.testing import assets
 from dm_control.utils import inverse_kinematics as ik
 import time
+import pygame
+import sys
 
 mjlib = mjbindings.mjlib
 
@@ -46,6 +48,9 @@ class IKDemo:
         
         # Position camera closer to the arm
         self._setup_camera()
+        
+        # Initialize pygame for keyboard input
+        self._init_pygame()
     
     def _setup_camera(self):
         """Position the camera for a better view of the arm."""
@@ -67,6 +72,159 @@ class IKDemo:
             self.viewer.cam.lookat[0] = base_pos[0]
             self.viewer.cam.lookat[1] = base_pos[1] 
             self.viewer.cam.lookat[2] = base_pos[2] + 0.3  # Slightly above base
+    
+    def _init_pygame(self):
+        """Initialize pygame for real-time keyboard input."""
+        pygame.init()
+        # Enable key repeat: delay=500ms, interval=50ms
+        pygame.key.set_repeat(500, 50)
+        
+        # Create a small window for pygame to capture events
+        self.pygame_screen = pygame.display.set_mode((200, 180))
+        pygame.display.set_caption("IK Demo Controls")
+        
+        # Fill with a dark background and add text
+        self.pygame_screen.fill((30, 30, 30))
+        font = pygame.font.Font(None, 16)
+        
+        text_lines = [
+            "IK Demo Controls",
+            "R - Randomize arm",
+            "S - Solve IK", 
+            "T - New target",
+            "Arrows - Move target",
+            "Shift+U/D - Z axis",
+            "Ctrl+L/R - Rot Z (5deg)",
+            "Ctrl+U/D - Rot X (5deg)", 
+            "Shift+L/R - Rot Y (5deg)",
+            "Q/ESC - Quit"
+        ]
+        
+        for i, line in enumerate(text_lines):
+            text = font.render(line, True, (255, 255, 255))
+            self.pygame_screen.blit(text, (5, 5 + i * 18))
+        
+        pygame.display.flip()
+        
+    def _get_keyboard_input(self):
+        """Check for keyboard input without blocking."""
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return 'q'
+            elif event.type == pygame.KEYDOWN:
+                # Check for modifiers
+                shift_pressed = pygame.key.get_pressed()[pygame.K_LSHIFT] or pygame.key.get_pressed()[pygame.K_RSHIFT]
+                ctrl_pressed = pygame.key.get_pressed()[pygame.K_LCTRL] or pygame.key.get_pressed()[pygame.K_RCTRL]
+                
+                if event.key == pygame.K_r:
+                    return 'r'
+                elif event.key == pygame.K_s:
+                    return 's'
+                elif event.key == pygame.K_t:
+                    return 't'
+                elif event.key == pygame.K_q or event.key == pygame.K_ESCAPE:
+                    return 'q'
+                elif event.key == pygame.K_UP:
+                    if ctrl_pressed:
+                        return 'rot_x_pos'  # Ctrl+Up: rotate around X axis
+                    elif shift_pressed:
+                        return 'up_shift'   # Shift+Up: move +Z
+                    else:
+                        return 'up'         # Up: move +Y
+                elif event.key == pygame.K_DOWN:
+                    if ctrl_pressed:
+                        return 'rot_x_neg'  # Ctrl+Down: rotate around X axis
+                    elif shift_pressed:
+                        return 'down_shift' # Shift+Down: move -Z
+                    else:
+                        return 'down'       # Down: move -Y
+                elif event.key == pygame.K_LEFT:
+                    if ctrl_pressed:
+                        return 'rot_z_neg'  # Ctrl+Left: rotate around Z axis
+                    elif shift_pressed:
+                        return 'rot_y_neg'  # Shift+Left: rotate around Y axis
+                    else:
+                        return 'left'       # Left: move -X
+                elif event.key == pygame.K_RIGHT:
+                    if ctrl_pressed:
+                        return 'rot_z_pos'  # Ctrl+Right: rotate around Z axis
+                    elif shift_pressed:
+                        return 'rot_y_pos'  # Shift+Right: rotate around Y axis
+                    else:
+                        return 'right'      # Right: move +X
+        return None
+    
+    def move_target(self, direction, step=0.01):
+        """Move the target position in Cartesian space."""
+        current_pos = self.target_pos.copy()
+        
+        if direction == 'up':  # +Y axis
+            current_pos[1] += step
+        elif direction == 'down':  # -Y axis
+            current_pos[1] -= step
+        elif direction == 'left':  # -X axis
+            current_pos[0] -= step
+        elif direction == 'right':  # +X axis
+            current_pos[0] += step
+        elif direction == 'up_shift':  # +Z axis
+            current_pos[2] += step
+        elif direction == 'down_shift':  # -Z axis
+            current_pos[2] -= step
+        
+        # Update target position (allow user to move anywhere to test IK limits)
+        self.update_target_pose(current_pos, self.target_quat)
+        
+        # Show distance from base for reference
+        base_pos = self.workspace_bounds['base_pos']
+        distance_from_base = np.linalg.norm(current_pos - base_pos)
+        print(f"\nTarget moved to: [{current_pos[0]:.3f}, {current_pos[1]:.3f}, {current_pos[2]:.3f}] (dist: {distance_from_base:.3f}m)")
+    
+    def rotate_target(self, rotation_type, angle_deg=5.0):
+        """Rotate the target orientation around specified axis."""
+        import numpy as np
+        from scipy.spatial.transform import Rotation as R
+        
+        # Convert current quaternion to rotation matrix
+        current_quat = self.target_quat.copy()
+        # Ensure quaternion is normalized
+        current_quat = current_quat / np.linalg.norm(current_quat)
+        
+        # Convert angle to radians
+        angle_rad = np.radians(angle_deg)
+        
+        # Create rotation based on type
+        if rotation_type == 'rot_x_pos':
+            axis_rotation = R.from_euler('x', angle_rad)
+        elif rotation_type == 'rot_x_neg':
+            axis_rotation = R.from_euler('x', -angle_rad)
+        elif rotation_type == 'rot_y_pos':
+            axis_rotation = R.from_euler('y', angle_rad)
+        elif rotation_type == 'rot_y_neg':
+            axis_rotation = R.from_euler('y', -angle_rad)
+        elif rotation_type == 'rot_z_pos':
+            axis_rotation = R.from_euler('z', angle_rad)
+        elif rotation_type == 'rot_z_neg':
+            axis_rotation = R.from_euler('z', -angle_rad)
+        else:
+            return
+        
+        # Convert current quaternion to scipy rotation
+        current_rotation = R.from_quat([current_quat[1], current_quat[2], current_quat[3], current_quat[0]])  # scipy uses [x,y,z,w]
+        
+        # Apply the rotation
+        new_rotation = axis_rotation * current_rotation
+        
+        # Convert back to quaternion in MuJoCo format [w,x,y,z]
+        new_quat_scipy = new_rotation.as_quat()  # [x,y,z,w]
+        new_quat = np.array([new_quat_scipy[3], new_quat_scipy[0], new_quat_scipy[1], new_quat_scipy[2]])  # [w,x,y,z]
+        
+        # Update target orientation
+        self.update_target_pose(self.target_pos, new_quat)
+        
+        # Convert to Euler angles for display
+        euler = new_rotation.as_euler('xyz', degrees=True)
+        print(f"\nTarget rotated {angle_deg}° around {rotation_type.split('_')[1].upper()} axis")
+        print(f"New orientation (deg): X={euler[0]:.1f}, Y={euler[1]:.1f}, Z={euler[2]:.1f}")
         
     def set_random_arm_configuration(self):
         """Set the arm to a random configuration."""
@@ -401,7 +559,7 @@ class IKDemo:
             # Update viewer
             if self.viewer.is_running():
                 self.viewer.sync()
-                time.sleep(0.02)  # 50 FPS
+                time.sleep(0.008)  # ~125 FPS (2.5x faster)
             else:
                 break
     
@@ -430,28 +588,37 @@ class IKDemo:
         print("- Press 'r' to randomize arm position")
         print("- Press 's' to solve IK and animate to target")
         print("- Press 't' to set new random target")
-        print("- Press 'q' to quit")
+        print("- Press 'q' or ESC to quit")
+        print("- Focus the pygame window for keyboard input")
         print()
         
         # Set initial random configuration
         self.set_random_arm_configuration()
         
+        last_distance_update = time.time()
+        
         while self.viewer.is_running():
-            # Get current end-effector position
-            current_pos = self.physics.named.data.site_xpos[SITE_NAME].copy()
-            distance = np.linalg.norm(current_pos - self.target_pos)
+            # Update viewer
+            if self.viewer.is_running():
+                self.viewer.sync()
             
-            print(f"\rEnd-effector distance to target: {distance:.4f}m", end="", flush=True)
+            # Update distance display periodically (not every frame)
+            current_time = time.time()
+            if current_time - last_distance_update > 0.1:  # Update every 100ms
+                current_pos = self.physics.named.data.site_xpos[SITE_NAME].copy()
+                distance = np.linalg.norm(current_pos - self.target_pos)
+                print(f"\rEnd-effector distance to target: {distance:.4f}m", end="", flush=True)
+                last_distance_update = current_time
             
-            # Check for keyboard input (simplified - in real application you'd use proper input handling)
-            key = input("\nEnter command (r/s/t/q): ").lower().strip()
+            # Check for keyboard input (non-blocking)
+            key = self._get_keyboard_input()
             
             if key == 'r':
-                print("Randomizing arm position...")
+                print("\nRandomizing arm position...")
                 self.set_random_arm_configuration()
                 
             elif key == 's':
-                print("Solving IK and animating to target...")
+                print("\nSolving IK and animating to target...")
                 result = self.solve_ik(self.target_pos, self.target_quat)
                 
                 if result.success:
@@ -463,7 +630,7 @@ class IKDemo:
                     print("(No animation - try 'r' to randomize arm position and try again)")
                     
             elif key == 't':
-                print("Setting new random target...")
+                print("\nSetting new random target...")
                 # Generate random target within safe reachable workspace
                 new_target_pos = self._generate_safe_target_position()
                 
@@ -479,8 +646,18 @@ class IKDemo:
                 
             elif key == 'q':
                 break
+            
+            # Arrow key handling for target movement and rotation
+            elif key in ['up', 'down', 'left', 'right', 'up_shift', 'down_shift']:
+                self.move_target(key)
+            elif key in ['rot_x_pos', 'rot_x_neg', 'rot_y_pos', 'rot_y_neg', 'rot_z_pos', 'rot_z_neg']:
+                self.rotate_target(key)
+            
+            # Small delay to prevent excessive CPU usage
+            time.sleep(0.01)
                 
         self.viewer.close()
+        pygame.quit()
 
 def main():
     """Main function to run the demo."""
