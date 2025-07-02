@@ -18,7 +18,7 @@ mjlib = mjbindings.mjlib
 SITE_NAME = 'gripsite'
 JOINTS = ['joint_1', 'joint_2', 'joint_3', 'joint_4', 'joint_5', 'joint_6']
 TARGET_SPHERE_SIZE = 0.03
-ANIMATION_STEPS = 100
+ANIMATION_STEPS = 20
 
 class IKDemo:
     def __init__(self, model_name, inplace=False):
